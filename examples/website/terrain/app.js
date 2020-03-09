@@ -22,14 +22,6 @@ const INITIAL_VIEW_STATE = {
   bearing: 140,
   pitch: 60
 };
-// const INITIAL_VIEW_STATE = {
-//   latitude: 37.1,
-//   longitude: -118.86,
-//   zoom: 13,
-//   bearing: -100,
-//   pitch: 56
-// };
-
 
 const getTiledTerrainData = ({bbox, x, y, z, options}) => {
   const {
@@ -58,7 +50,6 @@ const getTiledTerrainData = ({bbox, x, y, z, options}) => {
       elevationDecoder
     }
   };
-  // const terrain = load(url, ImageLoader, {image: {type: 'data', data: true}});
   const terrain = load(url, TerrainLoader, terrainOptions);
   const mvturl = `https://mbtiles.nst.guide/services/openmaptiles/own/tiles/${z}/${x}/${y}.pbf`;
   const loaderOptions = {
@@ -74,33 +65,6 @@ const getTiledTerrainData = ({bbox, x, y, z, options}) => {
   const mvttile = load(mvturl, MVTLoader, loaderOptions);
   return Promise.all([terrain, mvttile]);
 };
-
-class TestRaisedMVTLayer extends TileLayer {
-  renderSubLayers(props) {
-    const geojsonlayer = new GeoJsonLayer(props);
-    return geojsonlayer;
-  }
-
-  renderLayers() {
-    const {
-      color,
-      terrainImage,
-      surfaceImage,
-      wireframe,
-      meshMaxError,
-      elevationDecoder
-    } = this.props;
-
-    return new TileLayer(this.props, {
-      id: `${this.props.id}-tiles`,
-      getTileData: this.getTiledTerrainData.bind(this),
-      renderSubLayers: this.renderSubLayers,
-      updateTriggers: {
-        getTileData: {terrainImage, surfaceImage, meshMaxError, elevationDecoder}
-      }
-    });
-  }
-}
 
 export default function App({
   surfaceImage = SURFACE_IMAGE,
@@ -138,9 +102,6 @@ export default function App({
 
         const newFeatures = snapFeaturesToTerrain({terrain, features, viewport});
         console.log(newFeatures);
-        // Find coords for nearby pixels for each coord
-        // Interpolate
-        // Raise coords to that elevation +
         // console.log(data);
         return data[1];
       });
