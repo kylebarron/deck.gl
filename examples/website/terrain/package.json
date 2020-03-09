@@ -7,7 +7,12 @@
     "start": "webpack-dev-server --progress --hot --open"
   },
   "dependencies": {
+    "@kylebarron/snap-features-to-mesh": "../../../../snap-features-to-mesh",
+    "@turf/helpers": "^6.1.4",
+    "@turf/invariant": "^6.1.2",
     "deck.gl": "^8.1.0-alpha.3",
+    "get-pixels": "^3.3.2",
+    "rbush": "^3.0.1",
     "react": "^16.3.0",
     "react-dom": "^16.3.0",
     "react-map-gl": "^5.0.0"
