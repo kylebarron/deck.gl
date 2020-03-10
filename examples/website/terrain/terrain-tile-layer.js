@@ -7,6 +7,7 @@ import {TERRAIN_IMAGE, NAIP_IMAGE, SURFACE_IMAGE, ELEVATION_DECODER} from './uti
 import {GeoJsonLayer} from '@deck.gl/layers';
 import {MVTLoader} from '@loaders.gl/mvt';
 import {Matrix4} from 'math.gl';
+import {snapFeatures} from '@kylebarron/snap-features-to-mesh';
 
 const MESH_MAX_ERROR = 10;
 const DUMMY_DATA = [1];
@@ -87,7 +88,22 @@ function renderSubLayers(props) {
   }
 
   return [
+    new GeoJsonLayer(props, {
+      // NOTE: currently you need to set each sublayer id so they don't conflict
+      id: `geojson-layer-${tile.x}-${tile.y}-${tile.z}`,
+      data: data.then(result => {
+        const mesh = result[0];
+        const features = result[2];
+        return snapFeatures({terrain: mesh, features});
+      }),
+      // Important for z-fighting
+      getPolygonOffset: d => [0, -100],
+      lineWidthMinPixels: 5,
+      coordinateSystem: COORDINATE_SYSTEM.CARTESIAN,
+      modelMatrix: getModelMatrix(tile)
+    }),
     new SimpleMeshLayer(props, {
+      // NOTE: currently you need to set each sublayer id so they don't conflict
       id: `terrain-simple-mesh-layer-${tile.x}-${tile.y}-${tile.z}`,
       data: DUMMY_DATA,
       mesh,
@@ -98,13 +114,6 @@ function renderSubLayers(props) {
       getPosition: d => [0, 0, 0],
       // Color to use if surfaceImage is unavailable
       getColor: [255, 255, 255]
-    }),
-    new GeoJsonLayer(props, {
-      // NOTE: currently you need to set each sublayer id so they don't conflict
-      id: `geojson-layer-${tile.x}-${tile.y}-${tile.z}`,
-      data: geojsonFeatures.then(r => r),
-      coordinateSystem: COORDINATE_SYSTEM.CARTESIAN,
-      modelMatrix: getModelMatrix(tile)
     })
   ];
 }
