@@ -1,11 +1,12 @@
 import {SimpleMeshLayer} from '@deck.gl/mesh-layers';
-import {WebMercatorViewport, COORDINATE_SYSTEM} from '@deck.gl/core';
+import {COORDINATE_SYSTEM} from '@deck.gl/core';
 import {load} from '@loaders.gl/core';
 import {TerrainLoader} from '@loaders.gl/terrain';
 import {TileLayer} from '@deck.gl/geo-layers';
 import {TERRAIN_IMAGE, NAIP_IMAGE, SURFACE_IMAGE, ELEVATION_DECODER} from './util';
 import {GeoJsonLayer} from '@deck.gl/layers';
 import {MVTLoader} from '@loaders.gl/mvt';
+import {Matrix4} from 'math.gl';
 
 const MESH_MAX_ERROR = 10;
 const DUMMY_DATA = [1];
@@ -47,26 +48,11 @@ function getTileData({x, y, z, bbox}) {
   const textureUrl = getTextureUrl({x, y, z});
   const mvtUrl = getOpenMapTilesUrl({x, y, z});
 
-  const viewport = new WebMercatorViewport({
-    longitude: (bbox.west + bbox.east) / 2,
-    latitude: (bbox.north + bbox.south) / 2,
-    zoom: z
-  });
-  const bottomLeft = viewport.projectFlat([bbox.west, bbox.south]);
-  const topRight = viewport.projectFlat([bbox.east, bbox.north]);
-  const bounds = [bottomLeft[0], bottomLeft[1], topRight[0], topRight[1]];
+  // minx, miny, maxx, maxy
+  // This is used to flip the image so that the origin is at the top left
+  const bounds = [0, 1, 1, 0];
 
-  const mvtLoaderOptions = {
-    mvt: {
-      coordinates: 'wgs84',
-      tileIndex: {
-        x,
-        y,
-        z
-      }
-    }
-  };
-  const mvttile = load(mvtUrl, MVTLoader, mvtLoaderOptions);
+  const mvttile = load(mvtUrl, MVTLoader);
   const terrain = loadTerrain({
     terrainImage: terrainUrl,
     bounds,
@@ -105,6 +91,7 @@ function renderSubLayers(props) {
       texture,
       getPolygonOffset: null,
       coordinateSystem: COORDINATE_SYSTEM.CARTESIAN,
+      modelMatrix: getModelMatrix(tile),
       getPosition: d => [0, 0, 0],
       // Color to use if surfaceImage is unavailable
       getColor: [255, 255, 255]
@@ -112,9 +99,25 @@ function renderSubLayers(props) {
     new GeoJsonLayer(props, {
       // NOTE: currently you need to set each sublayer id so they don't conflict
       id: `geojson-layer-${tile.x}-${tile.y}-${tile.z}`,
-      data: geojsonFeatures.then(r => r)
+      data: geojsonFeatures.then(r => r),
+      coordinateSystem: COORDINATE_SYSTEM.CARTESIAN,
+      modelMatrix: getModelMatrix(tile)
     })
   ];
+}
+
+// From https://github.com/uber/deck.gl/blob/b1901b11cbdcb82b317e1579ff236d1ca1d03ea7/modules/geo-layers/src/mvt-tile-layer/mvt-tile-layer.js#L41-L52
+function getModelMatrix(tile) {
+  const WORLD_SIZE = 512;
+  const worldScale = Math.pow(2, tile.z);
+
+  const xScale = WORLD_SIZE / worldScale;
+  const yScale = -xScale;
+
+  const xOffset = (WORLD_SIZE * tile.x) / worldScale;
+  const yOffset = WORLD_SIZE * (1 - tile.y / worldScale);
+
+  return new Matrix4().translate([xOffset, yOffset, 0]).scale([xScale, yScale, 1]);
 }
 
 function loadTerrain({terrainImage, bounds, elevationDecoder, meshMaxError, workerUrl}) {

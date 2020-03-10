@@ -95,7 +95,7 @@ export default function App() {
     <DeckGL
       initialViewState={INITIAL_VIEW_STATE}
       controller={true}
-      layers={[TerrainTileLayer(), testRaisedMvt]}
+      layers={[TerrainTileLayer()]}
       // onHover={x => console.log(x)}
       // pickingRadius={5}
     >
