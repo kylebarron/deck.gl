@@ -12,7 +12,7 @@ export const landsatUrl = () => {
 
 export const TERRAIN_IMAGE = `https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png`;
 export const NAIP_IMAGE =
-  'https://naip-lambda.kylebarron.dev/4c4d507790e8afa837215677bd6f74f58711bfaf3e1d5f7226193e12/{z}/{x}/{y}@2x.png';
+  'https://naip-lambda.kylebarron.dev/4c4d507790e8afa837215677bd6f74f58711bfaf3e1d5f7226193e12/{z}/{x}/{y}@2x.jpg';
 export const SURFACE_IMAGE = landsatUrl();
 
 export const ELEVATION_DECODER = {
