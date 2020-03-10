@@ -11,16 +11,16 @@ import {WebMercatorViewport} from '@deck.gl/core';
 import {MVTLoader} from '@loaders.gl/mvt';
 import {TerrainLoader} from '@loaders.gl/terrain';
 
-import {TERRAIN_IMAGE, SURFACE_IMAGE, ELEVATION_DECODER} from './util';
+import {TERRAIN_IMAGE, ELEVATION_DECODER} from './util';
 import {snapFeaturesToTerrain} from '@kylebarron/snap-features-to-mesh';
-import { TerrainLayer } from './terrain-layer'
+import {TerrainTileLayer} from './terrain-tile-layer';
 
 const INITIAL_VIEW_STATE = {
-  latitude: 46.24,
+  latitude: 46.21,
   longitude: -122.18,
   zoom: 11.5,
-  bearing: 140,
-  pitch: 60
+  bearing: 140
+  // pitch: 60
 };
 
 const getTiledTerrainData = ({bbox, x, y, z, options}) => {
@@ -66,24 +66,7 @@ const getTiledTerrainData = ({bbox, x, y, z, options}) => {
   return Promise.all([terrain, mvttile]);
 };
 
-export default function App({
-  surfaceImage = SURFACE_IMAGE,
-  wireframe = false,
-  initialViewState = INITIAL_VIEW_STATE
-}) {
-  const layer = new TerrainLayer({
-    id: 'terrain',
-    minZoom: 0,
-    maxZoom: 17,
-    meshMaxError: 10,
-    strategy: 'no-overlap',
-    elevationDecoder: ELEVATION_DECODER,
-    terrainImage: TERRAIN_IMAGE,
-    surfaceImage,
-    wireframe,
-    color: [255, 255, 255]
-  });
-
+export default function App() {
   const testRaisedMvt = new TileLayer({
     id: 'testraisedmvt',
     minZoom: 0,
@@ -110,9 +93,9 @@ export default function App({
 
   return (
     <DeckGL
-      initialViewState={initialViewState}
+      initialViewState={INITIAL_VIEW_STATE}
       controller={true}
-      layers={[layer, testRaisedMvt]}
+      layers={[TerrainTileLayer(), testRaisedMvt]}
       // onHover={x => console.log(x)}
       // pickingRadius={5}
     >
