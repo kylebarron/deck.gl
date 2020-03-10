@@ -52,13 +52,16 @@ function getTileData({x, y, z, bbox}) {
   // This is used to flip the image so that the origin is at the top left
   const bounds = [0, 1, 1, 0];
 
+  // Load vector tile
   const mvttile = load(mvtUrl, MVTLoader);
+  // Load terrain tile
   const terrain = loadTerrain({
     terrainImage: terrainUrl,
     bounds,
     elevationDecoder: ELEVATION_DECODER,
     meshMaxError: MESH_MAX_ERROR
   });
+  // Load satellite image
   const texture = textureUrl
     ? // If surface image fails to load, the tile should still be displayed
       load(textureUrl).catch(_ => null)
