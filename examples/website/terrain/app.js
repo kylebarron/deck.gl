@@ -28,24 +28,42 @@ const ELEVATION_DECODER = {
   offset: -10000
 };
 
-export default function App({
-  texture = SURFACE_IMAGE,
-  wireframe = false,
-  initialViewState = INITIAL_VIEW_STATE
-}) {
-  const layer = new TerrainLayer({
-    id: 'terrain',
-    minZoom: 0,
-    maxZoom: 23,
-    strategy: 'no-overlap',
-    elevationDecoder: ELEVATION_DECODER,
-    elevationData: TERRAIN_IMAGE,
-    texture,
-    wireframe,
-    color: [255, 255, 255]
-  });
+class App extends React.Component {
+  render() {
+    const {
+      texture = SURFACE_IMAGE,
+      wireframe = false,
+      initialViewState = INITIAL_VIEW_STATE
+    } = this.props;
+    const layer = new TerrainLayer({
+      id: 'terrain',
+      minZoom: 0,
+      maxZoom: 23,
+      strategy: 'no-overlap',
+      elevationDecoder: ELEVATION_DECODER,
+      elevationData: TERRAIN_IMAGE,
+      texture,
+      wireframe,
+      pickable: true,
+      color: [255, 255, 255]
+    });
 
-  return <DeckGL initialViewState={initialViewState} controller={true} layers={[layer]} />;
+    return (
+      <DeckGL
+        ref={ref => {
+          this.deck = ref;
+        }}
+        initialViewState={initialViewState}
+        controller={true}
+        layers={[layer]}
+        onClick={(event, source) => {
+          const {x, y} = event;
+          const picked = this.deck.pickObject({x, y, unproject3D: true});
+          console.log(picked);
+        }}
+      />
+    );
+  }
 }
 
 export function renderToDOM(container) {
